@@ -7,8 +7,10 @@ import {SimpleStorage} from "../src/SimpleStorage.sol";
 
 contract DeploySimpleStorage is Script {
     function run() external returns (SimpleStorage) {
-        vm.startBoardcast();
+        vm.startBroadcast();
         SimpleStorage simpleStorage = new SimpleStorage();
-        vm.stopBoardcast();
+        vm.stopBroadcast();
+
+        return simpleStorage;
     }
 }
