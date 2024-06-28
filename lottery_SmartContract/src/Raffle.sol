@@ -35,7 +35,8 @@ import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBa
 contract Raffle is VRFConsumerBaseV2 {
     error Raffle__NotEnoughEthSent();
     error Raffle__TransferFailed();
-    error  Raffle__RaffleNoOpen();
+    error Raffle__RaffleNoOpen();
+    error Raffle__UpkeepNotNeeded(uint256 balance, uint256 playersLength, uint256 raffleState);
 
     enum RaffleState {
         OPEN,
@@ -91,13 +92,14 @@ contract Raffle is VRFConsumerBaseV2 {
         }
     }
 
-    function pickWinner() external {
+    function performUpkeep(bytes memory /**performData */) external {
         // check to see if enough time has passed
-        if ((block.timestamp - s_lastTimeStamp) > i_interval) {
-            revert();
-        }
+       (bool upkeepNeeded, ) = checkUpkeep("");
+       if (!upkeepNeeded) {
+            revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
+       }
         s_raffleState = RaffleState.CALCULATING;
-        uint256 requestId = i_vrfCoordinator.requestRandomWords(
+         i_vrfCoordinator.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
             REQUEST_CONFIRMATION,
@@ -107,7 +109,7 @@ contract Raffle is VRFConsumerBaseV2 {
     }
 
     function fulfillRandomWords(
-        uint256 _requestId,
+        uint256,
         uint256[] memory _randomWords
     ) internal override {
         uint256 indexOfWinner = _randomWords[0] % s_players.length;
@@ -116,13 +118,29 @@ contract Raffle is VRFConsumerBaseV2 {
         s_raffleState = RaffleState.OPEN;
 
         s_players = new address payable[](0);
-        s_lastTimeStamp =block.timestamp;
+        s_lastTimeStamp = block.timestamp;
 
-        (bool success, ) = s_recentWinner.call{value: address(this).balance}("");
-        if(!success) {
+        (bool success, ) = s_recentWinner.call{value: address(this).balance}(
+            ""
+        );
+        if (!success) {
             revert Raffle__TransferFailed();
         }
         emit WinnerPicked(winner);
+    }
+
+    function checkUpkeep(bytes memory) 
+        public 
+        view 
+        returns (bool upkeepNeed, bytes memory /**performData */) 
+    {
+        bool timeHasPassed = ((block.timestamp - s_lastTimeStamp) >= i_interval);
+        bool isOpen = s_raffleState == RaffleState.OPEN;
+        bool hasBalance = address(this).balance > 0;
+        bool hasPlayers = s_players.length > 0;
+
+        upkeepNeed = timeHasPassed && isOpen && hasBalance && hasPlayers;
+        return (upkeepNeed, hex"");
     }
 
     /** Getter function */
