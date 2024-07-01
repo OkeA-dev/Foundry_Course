@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.19;
-import {Test} from "forge-std/Test.sol";
+import {Test,console} from "forge-std/Test.sol";
 import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {Raffle} from "../../src/Raffle.sol";
 import {HelperConfig} from "../../script/HelpConfig.s.sol";
@@ -62,12 +62,14 @@ contract RaffleTest is Test {
         emit RaffleEnter(PLAYER);
 
         raffle.enterRaffle{value: entranceFee}();
+        console.log(interval);
+        console.log(raffle.getInterval());
     }
 
     function testDontAllowPlayerToEnterWhileRaffleIsCalculating() public {
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
-        vm.warp(block.timestamp + interval + 1);
+        vm.warp(block.timestamp + raffle.getInterval() + 1);
         vm.roll(block.number + 1);
         raffle.performUpkeep("");
 
