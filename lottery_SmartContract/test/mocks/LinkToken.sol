@@ -52,4 +52,5 @@ contract LinkToken is ERC20 {
         }
         return length > 0;
     }
+    
 }
