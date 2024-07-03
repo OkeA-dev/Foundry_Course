@@ -16,3 +16,6 @@
 [submodule "lottery_SmartContract/lib/chainlink-brownie-contracts"]
 	path = lottery_SmartContract/lib/chainlink-brownie-contracts
 	url = https://github.com/smartcontractkit/chainlink-brownie-contracts
+[submodule "lottery_SmartContract/lib/solmate"]
+	path = lottery_SmartContract/lib/solmate
+	url = https://github.com/transmissions11/solmate
