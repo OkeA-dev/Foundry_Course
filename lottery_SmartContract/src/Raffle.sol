@@ -221,4 +221,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     function getNumberOfPlayers() public view returns (uint256) {
         return s_players.length;
     }
+    function getRaffleBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
 }
