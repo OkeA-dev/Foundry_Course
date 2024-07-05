@@ -199,11 +199,15 @@ contract RaffleTest is Test {
 
         uint256 additionalEntrants = 3;
         uint256 startingIndex = 1;
+        address expectWinner = address(1);
+
         for (uint256 i = startingIndex; i < startingIndex + additionalEntrants; i++) {
             address newPlayer = address(uint160(i));
             hoax(newPlayer, 1 ether);
             raffle.enterRaffle{value: entranceFee}();
         }
+        uint256 startingTimeStamp = raffle.getLastTimeStamp();
+        uint256 winnerStartingBalance = expectWinner.balance;
 
         //Act
         vm.recordLogs();
@@ -212,7 +216,18 @@ contract RaffleTest is Test {
         bytes32 requestId = entries[0].topics[1];
 
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(uint256(requestId), address(raffle));
-        
+
+        address recentWinner = raffle.getRecentWinner();
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+        uint256 winnerBalance = recentWinner.balance;
+        uint256 endingTimeStamp = raffle.getLastTimeStamp();
+        uint256 prize = entranceFee * (additionalEntrants + 1);
+
+
+        assert(recentWinner == expectWinner);
+        assert(uint256(raffleState) == 0); 
+        assert(winnerBalance == winnerStartingBalance + prize);
+        assert(endingTimeStamp > startingTimeStamp);
     }
 
 }
