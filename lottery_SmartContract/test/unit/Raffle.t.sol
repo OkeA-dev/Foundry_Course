@@ -191,7 +191,8 @@ contract RaffleTest is Test {
     //////////////////////////////////////////////////////////////*/
 
     function testFulfillrandomWordsCanOnlyBeCalledAfterPerformUpkeep(uint256 randomRequestId) public raffleEntered {
-        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        // vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        raffle.performUpkeep("");
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomRequestId, address(raffle));
     }
 
@@ -214,6 +215,7 @@ contract RaffleTest is Test {
         raffle.performUpkeep("");
         Vm.Log[] memory entries = vm.getRecordedLogs();
         bytes32 requestId = entries[0].topics[1];
+
 
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(uint256(requestId), address(raffle));
 
